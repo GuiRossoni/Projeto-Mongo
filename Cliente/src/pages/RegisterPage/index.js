@@ -11,20 +11,20 @@ export default function RegisterPage() {
       headers: {'Content-Type':'application/json'},
     });
     if (response.status === 200) {
-      alert('registration successful');
+      alert('Usuário registrado!');
     } else {
-      alert('registration failed');
+      alert('Falha no registro');
     }
   }
   return (
     <form className="register" onSubmit={register}>
       <h1>Register</h1>
       <input type="text"
-             placeholder="username"
+             placeholder="Usuário"
              value={username}
              onChange={ev => setUsername(ev.target.value)}/>
       <input type="password"
-             placeholder="password"
+             placeholder="Senha"
              value={password}
              onChange={ev => setPassword(ev.target.value)}/>
       <button>Register</button>

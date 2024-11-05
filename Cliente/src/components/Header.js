@@ -7,12 +7,11 @@ export default function Header() {
   useEffect(() => {
     fetch('http://localhost:4000/profile', {
       credentials: 'include',
-    }).then(response => {
-      response.json().then(userInfo => {
-        setUserInfo(userInfo);
-      });
-    });
+    })
+      .then(response => response.ok ? response.json() : null)
+      .then(userInfo => setUserInfo(userInfo));
   }, []);
+  
 
   function logout() {
     fetch('http://localhost:4000/logout', {
@@ -26,7 +25,7 @@ export default function Header() {
 
   return (
     <header>
-      <Link to="/" className="logo">Blog 4ºA</Link>
+      <Link to="/" className="logo">Blog Notinhas</Link>
       <nav>
         {username && (
           <>

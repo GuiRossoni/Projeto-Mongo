@@ -4,14 +4,14 @@ import Editor from "../../components/Editor";
 
 export default function EditPost() {
   const {id} = useParams();
-  const [title,setTitle] = useState('');
-  const [summary,setSummary] = useState('');
-  const [content,setContent] = useState('');
+  const [title, setTitle] = useState('');
+  const [summary, setSummary] = useState('');
+  const [content, setContent] = useState('');
   const [files, setFiles] = useState('');
-  const [redirect,setRedirect] = useState(false);
+  const [redirect, setRedirect] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:4000/post/'+id)
+    fetch('http://localhost:4000/post/' + id)
       .then(response => {
         response.json().then(postInfo => {
           setTitle(postInfo.title);
@@ -41,24 +41,41 @@ export default function EditPost() {
     }
   }
 
+  async function deletePost() {
+    const response = await fetch(`http://localhost:4000/post/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      setRedirect(true);
+    }
+  }
+
   if (redirect) {
-    return <Navigate to={'/post/'+id} />
+    return <Navigate to="/" />;
   }
 
   return (
     <form onSubmit={updatePost}>
-      <input type="title"
-             placeholder={'Title'}
-             value={title}
-             onChange={ev => setTitle(ev.target.value)} />
-      <input type="summary"
-             placeholder={'Summary'}
-             value={summary}
-             onChange={ev => setSummary(ev.target.value)} />
-      <input type="file"
-             onChange={ev => setFiles(ev.target.files)} />
+      <input
+        type="title"
+        placeholder={'Título'}
+        value={title}
+        onChange={ev => setTitle(ev.target.value)} />
+      <input
+        type="summary"
+        placeholder={'Descrição'}
+        value={summary}
+        onChange={ev => setSummary(ev.target.value)} />
+      <input
+        type="file"
+        onChange={ev => setFiles(ev.target.files)} />
       <Editor onChange={setContent} value={content} />
-      <button style={{marginTop:'5px'}}>Update post</button>
+      <button style={{marginTop: '5px'}}>Atualizar Post</button>
+      <button
+        type="button"
+        onClick={deletePost}
+        style={{marginTop: '5px', backgroundColor: 'red', color: 'white'}}>Deletar Post</button>
     </form>
   );
 }

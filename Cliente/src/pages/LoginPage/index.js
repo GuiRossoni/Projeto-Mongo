@@ -21,7 +21,7 @@ export default function LoginPage() {
         setRedirect(true);
       });
     } else {
-      alert('wrong credentials');
+      alert('Senha inválida!');
     }
   }
 
@@ -32,11 +32,11 @@ export default function LoginPage() {
     <form className="login" onSubmit={login}>
       <h1>Login</h1>
       <input type="text"
-             placeholder="username"
+             placeholder="Usuário"
              value={username}
              onChange={ev => setUsername(ev.target.value)}/>
       <input type="password"
-             placeholder="password"
+             placeholder="Senha"
              value={password}
              onChange={ev => setPassword(ev.target.value)}/>
       <button>Login</button>

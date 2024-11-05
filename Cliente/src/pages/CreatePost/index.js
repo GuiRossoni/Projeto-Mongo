@@ -33,17 +33,17 @@ export default function CreatePost() {
   return (
     <form onSubmit={createNewPost}>
       <input type="title"
-             placeholder={'Title'}
+             placeholder={'Título'}
              value={title}
              onChange={ev => setTitle(ev.target.value)} />
       <input type="summary"
-             placeholder={'Summary'}
+             placeholder={'Descrição'}
              value={summary}
              onChange={ev => setSummary(ev.target.value)} />
       <input type="file"
              onChange={ev => setFiles(ev.target.files)} />
       <Editor value={content} onChange={setContent} />
-      <button style={{marginTop:'5px'}}>Create post</button>
+      <button style={{marginTop:'5px'}}>Criar Post</button>
     </form>
   );
 }
