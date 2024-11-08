@@ -1,15 +1,22 @@
 const mongoose = require('mongoose');
-const {Schema, model} = mongoose;
+const { Schema, model } = mongoose;
+
+const CommentSchema = new Schema({
+    content: { type: String, required: true },
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    createdAt: { type: Date, default: Date.now },
+});
 
 const PostSchema = new Schema({
-        title: String,
-        summary: String,
-        content: String,
-        cover: String,
-    author:{ type: Schema.Types.ObjectId, ref: 'User'},
+    title: { type: String, required: true },
+    summary: { type: String, required: true },
+    content: { type: String, required: true },
+    cover: String,
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    comments: [CommentSchema],  // Adiciona um array de comentários
 }, 
 {
-  timestamps: true,
+    timestamps: true,
 });
 
 const PostModel = model('Post', PostSchema);

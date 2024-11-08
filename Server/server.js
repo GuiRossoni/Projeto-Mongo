@@ -205,6 +205,63 @@ app.get('/post/:id', async (req, res) => {
     res.json(postDoc);
 });
 
+// Obter todos os comentários de um post
+app.get('/post/:postId/comment', async (req, res) => {
+    const { postId } = req.params;
+    try {
+        const post = await Post.findById(postId).populate('comment.author', ['username']);
+        if (!post) {
+            return res.status(404).json("Post não encontrado");
+        }
+        res.json(post.comments);
+    } catch (error) {
+        console.error("Erro ao obter comentários:", error);
+        res.status(500).json("Erro ao obter comentários");
+    }
+});
+
+// Deletar um comentário de um post
+app.delete('/post/:postId/comment/:commentId', async (req, res) => {
+    const { token } = req.cookies;
+    const { postId, commentId } = req.params;
+
+    if (!token) {
+        return res.status(401).json("Token não fornecido");
+    }
+
+    jwt.verify(token, secret, {}, async (err, info) => {
+        if (err) {
+            return res.status(401).json("Token inválido");
+        }
+
+        try {
+            const post = await Post.findById(postId);
+            if (!post) {
+                return res.status(404).json("Post não encontrado");
+            }
+
+            // Encontra o comentário
+            const comment = post.comments.id(commentId);
+            if (!comment) {
+                return res.status(404).json("Comentário não encontrado");
+            }
+
+            // Permite exclusão apenas se o usuário for o autor do post ou do comentário
+            if (String(comment.author) === info.id || String(post.author) === info.id) {
+                comment.remove();
+                await post.save();
+                res.json({ success: true, message: "Comentário excluído com sucesso" });
+            } else {
+                res.status(403).json("Permissão negada para excluir o comentário");
+            }
+        } catch (error) {
+            console.error("Erro ao excluir comentário:", error);
+            res.status(500).json("Erro ao excluir comentário");
+        }
+    });
+});
+
+
 app.listen(4000, () => {
     console.log("Servidor rodando na porta 4000");
 });
