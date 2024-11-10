@@ -205,11 +205,52 @@ app.get('/post/:id', async (req, res) => {
     res.json(postDoc);
 });
 
+// Adicionar um novo comentário a um post
+app.post('/post/:postId/comment', async (req, res) => {
+    const { token } = req.cookies;
+    const { postId } = req.params;
+    const { content } = req.body;
+
+    // Verifica se o usuário está autenticado
+    if (!token) {
+        return res.status(401).json("Token não fornecido");
+    }
+
+    jwt.verify(token, secret, {}, async (err, info) => {
+        if (err) {
+            return res.status(401).json("Token inválido");
+        }
+
+        try {
+            // Encontra o post pelo ID
+            const post = await Post.findById(postId);
+            if (!post) {
+                return res.status(404).json("Post não encontrado");
+            }
+
+            // Adiciona o comentário ao array `comments` do post
+            const newComment = {
+                content: content,
+                author: info.id,
+                createdAt: new Date(),
+            };
+
+            post.comments.push(newComment);
+            await post.save();
+
+            res.json({ success: true, message: "Comentário adicionado com sucesso", comment: newComment });
+        } catch (error) {
+            console.error("Erro ao adicionar comentário:", error);
+            res.status(500).json("Erro ao adicionar comentário");
+        }
+    });
+});
+
 // Obter todos os comentários de um post
 app.get('/post/:postId/comment', async (req, res) => {
     const { postId } = req.params;
     try {
-        const post = await Post.findById(postId).populate('comment.author', ['username']);
+        const post = await Post.findById(postId).populate('comments.author', ['username']);
         if (!post) {
             return res.status(404).json("Post não encontrado");
         }
@@ -235,21 +276,22 @@ app.delete('/post/:postId/comment/:commentId', async (req, res) => {
         }
 
         try {
+            // Encontra o post pelo ID
             const post = await Post.findById(postId);
             if (!post) {
                 return res.status(404).json("Post não encontrado");
             }
 
-            // Encontra o comentário
+            // Encontra o comentário pelo ID
             const comment = post.comments.id(commentId);
             if (!comment) {
                 return res.status(404).json("Comentário não encontrado");
             }
 
-            // Permite exclusão apenas se o usuário for o autor do post ou do comentário
+            // Verifica se o usuário é o autor do comentário ou do post
             if (String(comment.author) === info.id || String(post.author) === info.id) {
-                comment.remove();
-                await post.save();
+                comment.remove(); // Remove o comentário usando o método de subdocumento
+                await post.save(); // Salva as alterações no post
                 res.json({ success: true, message: "Comentário excluído com sucesso" });
             } else {
                 res.status(403).json("Permissão negada para excluir o comentário");
@@ -260,7 +302,6 @@ app.delete('/post/:postId/comment/:commentId', async (req, res) => {
         }
     });
 });
-
 
 app.listen(4000, () => {
     console.log("Servidor rodando na porta 4000");

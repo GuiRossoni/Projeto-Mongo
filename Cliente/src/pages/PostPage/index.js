@@ -32,8 +32,8 @@ export default function PostPage() {
       .then(response => response.json())
       .then(postInfo => setPostInfo(postInfo))
       .catch(error => setError("Erro ao carregar post."));
-
-    fetch(`http://localhost:4000/post/${id}/comments`)
+  
+    fetch(`http://localhost:4000/post/${id}/comment`) // Atualize aqui
       .then(response => response.json())
       .then(data => setComments(Array.isArray(data) ? data : [])) // Confirma que `data` é um array
       .catch(error => setError("Erro ao carregar comentários."));
@@ -44,7 +44,7 @@ export default function PostPage() {
     if (!commentText.trim()) return;
   
     try {
-      const response = await fetch(`http://localhost:4000/post/${id}/comments`, {
+      const response = await fetch(`http://localhost:4000/post/${id}/comment`, { // Atualize aqui
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +54,7 @@ export default function PostPage() {
       });
   
       if (response.ok) {
-        const updatedComments = await fetch(`http://localhost:4000/post/${id}/comments`)
+        const updatedComments = await fetch(`http://localhost:4000/post/${id}/comment`) // Atualize aqui
           .then(res => res.json());
         
         setComments(Array.isArray(updatedComments) ? updatedComments : []);
@@ -69,21 +69,21 @@ export default function PostPage() {
   
   const handleDeleteComment = async (commentId) => {
     try {
-      const response = await fetch(`http://localhost:4000/post/${id}/comments/${commentId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-  
-      if (response.ok) {
-        setComments(comments.filter(comment => comment.id !== commentId));
-      } else {
-        throw new Error("Erro ao excluir comentário");
-      }
-    } catch (error) {
-      setError("Erro ao excluir comentário");
-    }
-  };
+        const response = await fetch(`http://localhost:4000/post/${id}/comment/${commentId}`, {
+            method: "DELETE",
+            credentials: "include",
+        });
 
+        if (response.ok) {
+            setComments(comments.filter(comment => (comment._id || comment.id) !== commentId));
+        } else {
+            throw new Error("Erro ao excluir comentário");
+        }
+    } catch (error) {
+        setError("Erro ao excluir comentário");
+    }
+};
+  
   if (error) return <div>{error}</div>;
   if (!postInfo) return <div>Carregando...</div>;
 
@@ -93,7 +93,7 @@ export default function PostPage() {
     <div className="post-page">
       <h1>{postInfo.title}</h1>
       <time>{formattedDate}</time>
-      <div className="author">Criado por: {postInfo.authorEmail || 'Autor desconhecido'}</div>
+      <div className="author">Criado por: {postInfo.author.username || 'Autor desconhecido'}</div>
 
       {userInfo && userInfo.id === postInfo.authorId && (
         <div className="edit-row">
@@ -111,18 +111,22 @@ export default function PostPage() {
       <div className="comments-section">
         <h2>Comentários</h2>
         {Array.isArray(comments) && comments.length > 0 ? (
-          comments.map((comment) => (
-            <div key={comment.id} className="comment">
-              <span className="author">Comentário de: {comment.authorEmail || "Anônimo"}</span>
-              <p>{comment.content}</p>
-              {userInfo && userInfo.id === comment.authorId && (
-                <button onClick={() => handleDeleteComment(comment.id)}>Excluir</button>
-              )}
-            </div>
-          ))
-        ) : (
-          <p>Não há comentários ainda.</p>
+        comments.map((comment) => (
+          <div key={comment._id || comment.id} className="comment">
+            <span className="author">{comment.author.username || "Anônimo"}</span>
+            <p>{comment.content}</p>
+
+        {console.log("userInfo:", userInfo, "comment.authorId:", comment.authorId)}
+
+        {userInfo && (userInfo.id === (comment.author._id || comment.authorId)) && (
+          <button onClick={() => handleDeleteComment(comment._id || comment.id)}>Excluir</button>
         )}
+  </div>
+))
+
+) : (
+  <p>Não há comentários ainda.</p>
+)}
 
         {userInfo ? (
           <form onSubmit={handleCommentSubmit}>
