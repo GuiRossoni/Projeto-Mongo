@@ -21,7 +21,7 @@ const formatDate = (timestamp) => {
 
 export default function PostPage() {
   const [postInfo, setPostInfo] = useState(null);
-  const [comments, setComments] = useState([]); // Inicializa como array vazio
+  const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [error, setError] = useState(null);
   const { userInfo } = useContext(UserContext);
@@ -33,9 +33,9 @@ export default function PostPage() {
       .then(postInfo => setPostInfo(postInfo))
       .catch(error => setError("Erro ao carregar post."));
   
-    fetch(`http://localhost:4000/post/${id}/comment`) // Atualize aqui
+    fetch(`http://localhost:4000/post/${id}/comment`)
       .then(response => response.json())
-      .then(data => setComments(Array.isArray(data) ? data : [])) // Confirma que `data` é um array
+      .then(data => setComments(Array.isArray(data) ? data : []))
       .catch(error => setError("Erro ao carregar comentários."));
   }, [id]);
 
@@ -44,7 +44,7 @@ export default function PostPage() {
     if (!commentText.trim()) return;
   
     try {
-      const response = await fetch(`http://localhost:4000/post/${id}/comment`, { // Atualize aqui
+      const response = await fetch(`http://localhost:4000/post/${id}/comment`, { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +54,7 @@ export default function PostPage() {
       });
   
       if (response.ok) {
-        const updatedComments = await fetch(`http://localhost:4000/post/${id}/comment`) // Atualize aqui
+        const updatedComments = await fetch(`http://localhost:4000/post/${id}/comment`) 
           .then(res => res.json());
         
         setComments(Array.isArray(updatedComments) ? updatedComments : []);

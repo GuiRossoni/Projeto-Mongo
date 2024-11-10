@@ -72,7 +72,6 @@ app.get('/profile', (req, res) => {
     const { token } = req.cookies;
 
     if (!token) {
-        // Se o token não está presente, retorne uma resposta de erro
         return res.status(401).json({ error: "Token não fornecido" });
     }
 
@@ -150,7 +149,6 @@ app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
 app.delete('/post/:id', async (req, res) => {
     const { token } = req.cookies;
 
-    // Verifica a existência e validade do token
     if (!token) {
         console.warn("Tentativa de exclusão de post sem token de autenticação");
         return res.status(401).json("Token não fornecido");
@@ -165,7 +163,6 @@ app.delete('/post/:id', async (req, res) => {
         const { id } = req.params;
         const postDoc = await Post.findById(id);
 
-        // Verifica se o post existe e se o usuário é o autor
         if (!postDoc) {
             console.warn(`Post com ID ${id} não encontrado para exclusão`);
             return res.status(404).json("Post não encontrado");
@@ -177,7 +174,6 @@ app.delete('/post/:id', async (req, res) => {
         }
 
         try {
-            // Exclui o post
             await postDoc.deleteOne();
             console.log(`Post com ID ${id} excluído com sucesso por usuário ${info.username}`);
             res.json({ success: true, message: "Post excluído com sucesso" });
@@ -187,7 +183,6 @@ app.delete('/post/:id', async (req, res) => {
         }
     });
 });
-
 
 app.get('/post', async (req, res) => {
     console.log("Requisição para obter todos os posts");
@@ -205,13 +200,11 @@ app.get('/post/:id', async (req, res) => {
     res.json(postDoc);
 });
 
-// Adicionar um novo comentário a um post
 app.post('/post/:postId/comment', async (req, res) => {
     const { token } = req.cookies;
     const { postId } = req.params;
     const { content } = req.body;
 
-    // Verifica se o usuário está autenticado
     if (!token) {
         return res.status(401).json("Token não fornecido");
     }
@@ -222,13 +215,11 @@ app.post('/post/:postId/comment', async (req, res) => {
         }
 
         try {
-            // Encontra o post pelo ID
             const post = await Post.findById(postId);
             if (!post) {
                 return res.status(404).json("Post não encontrado");
             }
 
-            // Adiciona o comentário ao array `comments` do post
             const newComment = {
                 content: content,
                 author: info.id,
@@ -246,7 +237,6 @@ app.post('/post/:postId/comment', async (req, res) => {
     });
 });
 
-// Obter todos os comentários de um post
 app.get('/post/:postId/comment', async (req, res) => {
     const { postId } = req.params;
     try {
@@ -261,7 +251,6 @@ app.get('/post/:postId/comment', async (req, res) => {
     }
 });
 
-// Deletar um comentário de um post
 app.delete('/post/:postId/comment/:commentId', async (req, res) => {
     const { token } = req.cookies;
     const { postId, commentId } = req.params;
@@ -276,22 +265,19 @@ app.delete('/post/:postId/comment/:commentId', async (req, res) => {
         }
 
         try {
-            // Encontra o post pelo ID
             const post = await Post.findById(postId);
             if (!post) {
                 return res.status(404).json("Post não encontrado");
             }
 
-            // Encontra o comentário pelo ID
             const comment = post.comments.id(commentId);
             if (!comment) {
                 return res.status(404).json("Comentário não encontrado");
             }
 
-            // Verifica se o usuário é o autor do comentário ou do post
             if (String(comment.author) === info.id || String(post.author) === info.id) {
-                comment.remove(); // Remove o comentário usando o método de subdocumento
-                await post.save(); // Salva as alterações no post
+                comment.remove();
+                await post.save();
                 res.json({ success: true, message: "Comentário excluído com sucesso" });
             } else {
                 res.status(403).json("Permissão negada para excluir o comentário");
