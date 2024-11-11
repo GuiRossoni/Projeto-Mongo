@@ -115,6 +115,13 @@ app.post('/post', uploadMiddleware.single('file'), async (req, res) => {
 
 app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
     console.log("Requisição para atualizar um post");
+
+    // Verifique se o 'id' foi passado no corpo da requisição
+    const { id, title, summary, content } = req.body;
+    if (!id) {
+        return res.status(400).json({ error: "ID do post não fornecido" });
+    }
+
     let newPath = null;
     if (req.file) {
         const { originalname, path } = req.file;
@@ -127,22 +134,32 @@ app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
     const { token } = req.cookies;
     jwt.verify(token, secret, {}, async (err, info) => {
         if (err) throw err;
-        const { id, title, summary, content } = req.body;
-        const postDoc = await Post.findById(id);
-        const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
-        if (!isAuthor) {
-            console.warn("Tentativa de atualização de post por usuário não autorizado");
-            return res.status(400).json('Esse post não pertence a você!');
-        }
-        await postDoc.updateOne({
-            title,
-            summary,
-            content,
-            cover: newPath ? newPath : postDoc.cover,
-        });
 
-        console.log("Post atualizado:", postDoc);
-        res.json(postDoc);
+        try {
+            const postDoc = await Post.findById(id);
+            if (!postDoc) {
+                return res.status(404).json({ error: "Post não encontrado" });
+            }
+
+            const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
+            if (!isAuthor) {
+                console.warn("Tentativa de atualização de post por usuário não autorizado");
+                return res.status(403).json('Esse post não pertence a você!');
+            }
+
+            await postDoc.updateOne({
+                title,
+                summary,
+                content,
+                cover: newPath ? newPath : postDoc.cover,
+            });
+
+            console.log("Post atualizado:", postDoc);
+            res.json(postDoc);
+        } catch (error) {
+            console.error("Erro ao atualizar post:", error);
+            res.status(500).json({ error: "Erro ao atualizar post" });
+        }
     });
 });
 
