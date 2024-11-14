@@ -1,23 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale/";
+import { formatISO9075 } from "date-fns"; // Importação ajustada
 import { UserContext } from "../../components/UserContext";
-
-const formatDate = (timestamp) => {
-  try {
-    if (timestamp && typeof timestamp === 'object' && '_seconds' in timestamp) {
-      const date = new Date(timestamp._seconds * 1000);
-      return format(date, "dd 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
-    } else if (typeof timestamp === 'string') {
-      return timestamp;
-    }
-    return 'Data indisponível';
-  } catch (error) {
-    console.error("Erro ao formatar data:", error);
-    return 'Data inválida';
-  }
-};
 
 export default function PostPage() {
   const [postInfo, setPostInfo] = useState(null);
@@ -87,7 +71,8 @@ export default function PostPage() {
   if (error) return <div>{error}</div>;
   if (!postInfo) return <div>Carregando...</div>;
 
-  const formattedDate = postInfo.createdAt ? formatDate(postInfo.createdAt) : 'Data indisponível';
+  // Formata a data usando formatISO9075
+  const formattedDate = formatISO9075(new Date(postInfo.createdAt));
 
   return (
     <div className="post-page">
